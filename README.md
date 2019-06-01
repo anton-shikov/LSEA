@@ -3,42 +3,22 @@ LSEA (locus set enrichment analysis) is a tool for performing gene set enrichmen
 
 ## Getting Started
 
-LSEA could be applied for gene set enrichment analysis for data obtained from GWAS-summary statistics files in tsv-format. It is based on simple hypergeometric test, however it transforms genes and gene sets into independant loci and sets of independant loci to eliminate multiple signals from genes in LD to enhance analysis precision.
+LSEA could be applied for gene set enrichment analysis for data obtained from GWAS-summary statistics files in tsv-format. It is based on simple hypergeometric test, however it transforms genes and gene sets into independant loci and sets of independant loci to eliminate multiple signals from genes in LD to enhance analysis precision. Tool includes precompiled universe of independant loci based on data, obtained from UK Biobank (https://www.ukbiobank.ac.uk/). Data for all heritable phenotypes (based on partitioned heritability p-value < 0.05) were processed with PLINK to get indepedant loci for each phenotype. After that all files were combined into universe with mearging intervals overlaping more than 60%.
 
 ### Prerequisites
 <ul>
   <li>python (3.7 or higher) </li>
   <li>scipy (1.0.0 or higher)  
-```
-~$ pip3 install scipy
-```</li>
-  <li>pandas (0.17.1 or higher)
-```
-~$ pip3 install pandas
-```
   </li>
-  
+  <li>pandas (0.17.1 or higher)
+  </li>
   <li>numpy (1.14.1 or higher)
-```
-~$ pip3 install numpy
-```
-</li> 
-<li>PLINK (1.07 or higher) - http://zzz.bwh.harvard.edu/plink/
-</li>
-<li>
-  SnpEff (4.3T or higher) - http://snpeff.sourceforge.net/
-</li>
+  </li> 
+  <li>PLINK (1.07 or higher) - http://zzz.bwh.harvard.edu/plink/
+  </li>
+  <li>SnpEff (4.3T or higher) - http://snpeff.sourceforge.net/
+  </li>
 </ul>
-  
-```
-~$ pip3 install scipy
-```
-```
-~$ pip3 install pandas
-```
-```
-~$ pip3 install numpy
-```
 
 ### Installing
 
@@ -60,9 +40,17 @@ Firstly, you need to prepare tsv-file from GWAS summary statistics with the foll
     <td>ALT</td>
     <td>PVAL</td>
   </tr>
+    <tr>
+    <td>9</td>
+    <td>136058188</td>
+    <td>rs12216896</td>
+    <td>C</td>
+    <td>T</td>
+    <td>2.89651e-11</td>
+  </tr>
 </table>
 
-To launch this tool you will also need to specify path to plink and snpeff directories.
+To launch this tool you will also need to specify path to PLINK and SnpEff directories.
 
 ## Example usage
 ```
@@ -70,6 +58,12 @@ To launch this tool you will also need to specify path to plink and snpeff direc
 ```
 This command will apply LSEA algorithm to the input file and will generate tsv-file with the following structure: 
 <table>
+  <tr>
+    <td>gene_set</td>
+    <td>p-value</td>
+    <td>q-value</td>
+    <td>enrich_description</td>
+  </tr>
   <tr>
     <td>BIOCARTA_INTRINSIC_PATHWAY</td>
     <td>2.0446237642438122e-14</td>
@@ -82,30 +76,30 @@ Note that the genes list could be smaller then the number of common loci, becaus
 -p (--precompiled flag) points that precompiled universe of independant loci based on UK Biobank data is used.<br>
 Information about HLA-locus is excluded from analisys due to high ambiguity of LD-scores within the HLA-locus.
 
-## Information about flags: 
+## Tool options: 
 ```
 -af <input.tsv> Input file in tsv-format 
 ```
 ```
--vf \<input.vcf\> Annotated vcf-file if it is already prepared <br> 
+-vf <input.vcf> Annotated vcf-file if it is already prepared <br> 
 ```
 ```
--pl \<input.clumped\> Plink result of clumping (.clumped file) if it is already prepared
+-pl <input.clumped> PlINK  result of clumping (.clumped file) if it is already prepared
 ```
 ```
 --precompiled, -p Use precompiled loci
 ```
 ```
-  -sn \<path to SNPeff directory\> Path to SNPeff
+  -sn <path to SnpEff directory> Path to SnpEff
 ```
 ```
- -g \<genome\> Flag for specifying genome for SNPeff annotation
+ -g <genome> Flag for specifying genome for SnpEff annotation
 ```
 ```
-  -pld \<path to plink directory\> Path to plink
+  -pld <path to PlINK directory> Path to PlINK 
 ```
 ```
-  -bf \<bfile\> Bfile for plink
+  -bf <bfile> Bfile for PLINK
 ```
 
 ## Creating your own universe:  
