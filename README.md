@@ -33,22 +33,22 @@ To install this tool clone this repository to your PC.
 
 ## Running and using tool
 
-Firstly, you need to prepare tsv-file with GWAS summary statistics with the following structure:
+Firstly, you need to prepare tsv-file with GWAS summary statistics with the following structure: <br> 
 CHR	COORDINATE	RSID	REF	ALT	PVAL
 
 To launch this tool you also need to specify path to plink and snpeff directories.
 
-### Example of usage
+## Example of usage
 ```
 ~$ python3 LSEA.py -af <input tsv-file> -sn <path to SNPeff> -pld <path to plink> -bf <bfile for plink> -p
 ```
-This command will apply LSEA algorytm to input file and will generate tsv file with the following structure:
-BIOCARTA_INTRINSIC_PATHWAY	2.0446237642438122e-14	2.2517441515617103e-10	(17776, 11, 36, 6, 'F11;FGB;FGA;F5;FGG;KLKB1')
-The first coloumn contains the name of the set, the second and the third represent p-value and corrected q-value of hypergeometric test, the last coloumn includes information about total number of independant loci, number of loci in quiery, number of loci in gene set, number of loci common for quiery and gene set and, finally, the genes list.
+This command will apply LSEA algorytm to input file and will generate tsv file with the following structure: <br>
+BIOCARTA_INTRINSIC_PATHWAY	2.0446237642438122e-14	2.2517441515617103e-10	(17776, 11, 36, 6, 'F11;FGB;FGA;F5;FGG;KLKB1') <br>
+The first column contains the name of the set, the second and the third represent p-value and corrected q-value of hypergeometric test, the last coloumn includes information about total number of independant loci, number of loci in quiery, number of loci in gene set, number of loci common for quiery and gene set and, finally, the genes list.<br>
 Note that the genes list could be smaller then number of genes, because only indepedant loci are counted for analysis.
 -p (--precompiled flag) points that precompiled universe of clumpes based of UK Biobank data is used.
 
-###Information about flags:  
+##Information about flags:  
   -af File              Input file in tsv-format
   -vf File              Annotated vcf-file if it is already prepared
   -pl File              Plink result of clumping if it is already prepared
@@ -58,7 +58,7 @@ Note that the genes list could be smaller then number of genes, because only ind
   -pld Dir              Path to plink
   -bf Str               Bfile for plink
 
-###Creating your own universe:  
+##Creating your own universe:  
 If you don't want to use precompiled clumped universe you can use options for creating your own clumping universe based on GWAS summary statictics. Use -cu (--create_universe) option to create clump universe for yor data. For this function you have to prepare results of clumping for GWAS data that you need to get results of clumping (.clumped files). If you have multivle files (e.g. for different phenotypes use -cld <directory> flag for specifying directory with clumped files)
 
 
