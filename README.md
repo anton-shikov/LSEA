@@ -80,26 +80,12 @@ Information about HLA-locus is excluded from analisys due to high ambiguity of L
 ## Tool options: 
 ```
 -af <input.tsv> Input file in tsv-format 
-```
-```
--vf <input.vcf> Annotated vcf-file if it is already prepared <br> 
-```
-```
+-vf <input.vcf> Annotated vcf-file if it is already prepared 
 -pl <input.clumped> PlINK  result of clumping (.clumped file) if it is already prepared
-```
-```
 --precompiled, -p Use precompiled loci
-```
-```
 -sn <path to SnpEff directory> Path to SnpEff
-```
-```
 -g <genome> Flag for specifying genome for SnpEff annotation
-```
-```
--pld <path to PlINK directory> Path to PlINK 
-```
-```
+-pld <path to PlINK directory> Path to PlINK -pld <path to PlINK directory> Path to PlINK 
 -bf <bfile> Bfile for PLINK
 ```
 
