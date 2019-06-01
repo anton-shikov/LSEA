@@ -85,7 +85,7 @@ Information about HLA-locus is excluded from analisys due to high ambiguity of L
 --precompiled, -p Use precompiled loci
 -sn <path to SnpEff directory> Path to SnpEff
 -g <genome> Flag for specifying genome for SnpEff annotation
--pld <path to PlINK directory> Path to PlINK -pld <path to PlINK directory> Path to PlINK 
+-pld <path to PlINK directory> Path to PlINK 
 -bf <bfile> Bfile for PLINK
 ```
 
