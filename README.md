@@ -3,7 +3,8 @@ LSEA (locus set enrichment analysis) is a tool for performing gene set enrichmen
 
 ## Getting Started
 
-LSEA could be applied for gene set enrichment analysis for data obtained from GWAS-summary statistics files in tsv-format. It is based on simple hypergeometric test, however it transforms genes and gene sets into independant loci and sets of independant loci to eliminate multiple signals from genes in LD to enhance analysis precision. Tool includes precompiled universe of independant loci based on data, obtained from UK Biobank (https://www.ukbiobank.ac.uk/). Data for all heritable phenotypes (based on partitioned heritability p-value < 0.05) were processed with PLINK to get indepedant loci for each phenotype. After that all files were combined into universe with mearging intervals overlaping more than 60%.
+LSEA could be applied for gene set enrichment analysis for data obtained from GWAS-summary statistics files in tsv-format. It is based on simple hypergeometric test, however it transforms genes and gene sets into independant loci and sets of independant loci to eliminate multiple signals from genes in LD to enhance analysis precision. 
+<br>Tool includes precompiled universe of independant loci based on data, obtained from UK Biobank (https://www.ukbiobank.ac.uk/). Data for all heritable phenotypes (based on partitioned heritability p-value < 0.05) were processed with PLINK to get indepedant loci for each phenotype. After that all files were combined into universe with mearging intervals overlaping more than 60%.
 
 ### Prerequisites
 <ul>
@@ -90,26 +91,28 @@ Information about HLA-locus is excluded from analisys due to high ambiguity of L
 --precompiled, -p Use precompiled loci
 ```
 ```
-  -sn <path to SnpEff directory> Path to SnpEff
+-sn <path to SnpEff directory> Path to SnpEff
 ```
 ```
- -g <genome> Flag for specifying genome for SnpEff annotation
+-g <genome> Flag for specifying genome for SnpEff annotation
 ```
 ```
-  -pld <path to PlINK directory> Path to PlINK 
+-pld <path to PlINK directory> Path to PlINK 
 ```
 ```
-  -bf <bfile> Bfile for PLINK
+-bf <bfile> Bfile for PLINK
 ```
 
 ## Creating your own universe:  
-If you don't want to use precompiled universe of independant loci you can use options for creating your own universe based on GWAS summary statictics files. Use -cu (--create_universe) option to create universe of independant from your data:
+If you don't want to use precompiled universe of independant loci you can use options for creating your own universe based on GWAS summary statictics files. Use -cu (--create_universe) option to create universe of independant loci from your data:
 ```
-  -af <input.tsv> -cu
+-af <input.tsv> -cu
 ```
-For this function you have to prepare results of clumping for your GWAS data (obtain .clumped file). If you have multiple files (e.g. for different phenotypes) use -cld <directory> flag for specifying directory with clumped files:
+For this function you have to prepare results of clumping for your GWAS data (obtain .clumped file). If you have multiple 
+files (e.g. for different phenotypes) use -cld <directory> flag for specifying directory with clumped files:
+  
 ```
-  -cld <directory with clumped files>
+-cld <directory with clumped files>
 ``` 
 
 
