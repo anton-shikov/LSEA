@@ -1,5 +1,5 @@
 # LSEA
-LSEA (locus set enrichment analysis) is a tool for performing gene set enrichment analysis on independent loci, taking into account LD (Linkage disequilibrium).
+LSEA (Locus Set Enrichment Analysis) is a tool for performing gene set enrichment analysis on independent loci, taking into account LD (Linkage Disequilibrium).
 
 ## Getting Started
 
