@@ -66,17 +66,40 @@ Note that the genes list could be smaller then the number of common loci, becaus
 Information about HLA-locus is excluded from analisys due to high ambiguity of LD-scores within the HLA-locus.
 
 ## Information about flags: 
-  -af \<input.tsv\> Input file in tsv-format <br>
-  -vf \<input.vcf\> Annotated vcf-file if it is already prepared <br>
-  -pl \<input.clumped\> Plink result of clumping (.clumped file) if it is already prepared <br>
-  --precompiled, -p Use precompiled loci <br>
-  -sn \<path to SNPeff directory\> Path to SNPeff <br>
-  -g \<genome\> Flag for specifying genome for SNPeff annotation <br>
-  -pld \<path to plink directory\> Path to plink <br>
-  -bf \<bfile\> Bfile for plink <br>
+```
+-af <input.tsv> Input file in tsv-format 
+```
+```
+-vf \<input.vcf\> Annotated vcf-file if it is already prepared <br> 
+```
+```
+-pl \<input.clumped\> Plink result of clumping (.clumped file) if it is already prepared
+```
+```
+--precompiled, -p Use precompiled loci
+```
+```
+  -sn \<path to SNPeff directory\> Path to SNPeff
+```
+```
+ -g \<genome\> Flag for specifying genome for SNPeff annotation
+```
+```
+  -pld \<path to plink directory\> Path to plink
+```
+```
+  -bf \<bfile\> Bfile for plink
+```
 
 ## Creating your own universe:  
-If you don't want to use precompiled universe of independant loci you can use options for creating your own universe based on GWAS summary statictics files. Use -cu (--create_universe) option to create universe of independant from your data. For this function you have to prepare results of clumping for your GWAS data (obtain .clumped file). If you have multiple files (e.g. for different phenotypes) use -cld <directory> flag for specifying directory with clumped files.
+If you don't want to use precompiled universe of independant loci you can use options for creating your own universe based on GWAS summary statictics files. Use -cu (--create_universe) option to create universe of independant from your data:
+```
+  -af <input.tsv> -cu
+```
+For this function you have to prepare results of clumping for your GWAS data (obtain .clumped file). If you have multiple files (e.g. for different phenotypes) use -cld <directory> flag for specifying directory with clumped files:
+```
+  -cld <directory with clumped files>
+``` 
 
 
 ## Author
