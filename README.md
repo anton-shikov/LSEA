@@ -6,22 +6,39 @@ LSEA (locus set enrichment analysis) is a tool for performing gene set enrichmen
 LSEA could be applied for gene set enrichment analysis for data obtained from GWAS-summary statistics files in tsv-format. It is based on simple hypergeometric test, however it transforms genes and gene sets into independant loci and sets of independant loci to eliminate multiple signals from genes in LD to enhance analysis precision.
 
 ### Prerequisites
-
--python (3.7 or higher) <br>
--scipy (1.0.0 or higher)
+<ul>
+  <li>python (3.7 or higher) </li>
+  <li>scipy (1.0.0 or higher)  
 ```
 ~$ pip3 install scipy
-```
--pandas (0.17.1 or higher)
+```</li>
+  <li>pandas (0.17.1 or higher)
 ```
 ~$ pip3 install pandas
 ```
--numpy (1.14.1 or higher)
+  </li>
+  
+  <li>numpy (1.14.1 or higher)
 ```
 ~$ pip3 install numpy
 ```
--plink (1.07 or higher) - http://zzz.bwh.harvard.edu/plink/ <br>
--SNPeff (4.3T or higher) - http://snpeff.sourceforge.net/ <br>
+</li> 
+<li>PLINK (1.07 or higher) - http://zzz.bwh.harvard.edu/plink/
+</li>
+<li>
+  SnpEff (4.3T or higher) - http://snpeff.sourceforge.net/
+</li>
+</ul>
+  
+```
+~$ pip3 install scipy
+```
+```
+~$ pip3 install pandas
+```
+```
+~$ pip3 install numpy
+```
 
 ### Installing
 
@@ -47,7 +64,7 @@ Firstly, you need to prepare tsv-file from GWAS summary statistics with the foll
 
 To launch this tool you will also need to specify path to plink and snpeff directories.
 
-## Example of usage
+## Example usage
 ```
 ~$ python3 LSEA.py -af <input tsv-file> -sn <path to SNPeff> -pld <path to plink> -bf <bfile for plink> -p
 ```
