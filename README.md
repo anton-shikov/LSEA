@@ -33,15 +33,6 @@ To generate universe run:
 `
 python3 universe_generator.py -path ./in.tsv -gene_file ./data/gencode_formatted.tsv -msig_path ./data/c2.all.v7.0.symbols.gmt  -interval 100000
 `
-## Methods
-Work of the program can be described as folows:
-1. Create "clumps" from input SNPs using *plink*
-2. Create intervals around their centers
-3. Merge intersecting intervals
-4. For each gene find, how many intervals it is in
-5. For every pathway count, how many intervals correspond to it
-6. Use FDR correction.
-
 ## Citations
 
 - Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, Bender D, Maller J, Sklar P, de Bakker PIW, Daly MJ & Sham PC (2007) PLINK: a toolset for whole-genome association and population-based linkage analysis. American Journal of Human Genetics, 81.
