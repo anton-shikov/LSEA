@@ -1,6 +1,6 @@
 # LSEA v0.2
 
-*This is a new version of the tools that is now being extensively benchmarked. Please note that this is a development repository. Please use the contents of this repository with caution*
+*This is a new version of the tool that is now being extensively benchmarked. Please note that this is a development repository. Please use the contents of this repository with caution*
 
 ## Prerequisites
 - plink v1.9
