@@ -12,11 +12,11 @@
 ## Usage
 
 To run full pipeline:  
-`
+```
 python3 LSEA_2.1.py -input ./data/in.tsv -plink_dir <plink_folder_path> -bfile <.bed file for PLINK> -universe ./data/universe.json -n 100000 -m 100 -h2 0.22
-`
+```
 
 To generate universe run:  
-`
+```
 python3 universe_generator.py -variants ./data/in.tsv -features ./data/gencode_formatted.bed ./data/c2.all.v7.0.symbols.gmt -interval 100000 -out universe.json
-`
+```
