@@ -1,4 +1,4 @@
-# LSEA v0.2
+# LSEA v0.2.1
 
 *This is a new version of the tool that is now being extensively benchmarked. Please note that this is a development repository. Please use the contents of this repository with caution*
 
@@ -7,6 +7,7 @@
 - bedtools
 - scipy for Python3
 - rpy2 for Python3
+- LDSC (https://github.com/bulik/ldsc)
 
 ## Usage
 
@@ -20,7 +21,7 @@ Output file contains pathway, p-value and q-value. See `data/result.tsv` for exa
 ## Examples
 To run full pipeline with *plink* run:  
 `
-python3 LSEA_2.0.py -tsv ./in.tsv -pldir <plink_folder_path> -b_file <files_for_plink> -gene_file ./data/gencode_formatted.tsv -json ./data/universe.json -column_names CHR BP SNP P
+python3 LSEA_2.1.py -input ./data/in.tsv -plink_dir <plink_folder_path> -bfile <.bed file for PLINK> -universe ./data/universe.json -n 100000 -m 100 -h2 0.22
 `
 
 
@@ -33,7 +34,3 @@ To generate universe run:
 `
 python3 universe_generator.py -path ./in.tsv -gene_file ./data/gencode_formatted.tsv -msig_path ./data/c2.all.v7.0.symbols.gmt  -interval 100000
 `
-## Citations
-
-- Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, Bender D, Maller J, Sklar P, de Bakker PIW, Daly MJ & Sham PC (2007) PLINK: a toolset for whole-genome association and population-based linkage analysis. American Journal of Human Genetics, 81.
-- Aaron R. Quinlan, Ira M. Hall, BEDTools: a flexible suite of utilities for comparing genomic features, Bioinformatics, Volume 26, Issue 6, 15 March 2010, Pages 841–842
