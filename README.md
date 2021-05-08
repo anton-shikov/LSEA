@@ -20,10 +20,16 @@ python3 LSEA_2.1.py -input ./data/in.tsv \
                     -n 100000 -m 100 -h2 0.22
 ```
 
-To generate universe run:  
+To generate universe from BED and GMT files, run:  
 ```
-python3 universe_generator.py -variants ./data/in.tsv \
+python3 universe_generator.py -variants ./data/positions.tsv \
                               -features ./data/gencode_formatted.bed \
                                         ./data/c2.all.v7.0.symbols.gmt \
                               -interval 100000 -o universe.json
 ```
+
+To generate universe using a directory with per-set BED files, run:
+```
+python3 universe_generator.py -variants ./data/positions.tsv \
+                              -feature_files_dir <dir with BED files> \
+                              -interval 100000 -o universe_dir.json
