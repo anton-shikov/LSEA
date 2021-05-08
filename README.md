@@ -23,6 +23,7 @@ python3 LSEA_2.1.py -input ./data/in.tsv \
 To generate universe run:  
 ```
 python3 universe_generator.py -variants ./data/in.tsv \
-                              -features ./data/gencode_formatted.bed ./data/c2.all.v7.0.symbols.gmt \
+                              -features ./data/gencode_formatted.bed \
+                                        ./data/c2.all.v7.0.symbols.gmt \
                               -interval 100000 -o universe.json
 ```
