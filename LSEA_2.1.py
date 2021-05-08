@@ -8,7 +8,7 @@ import re
 from collections import defaultdict
 from scipy.stats import hypergeom
 from rpy2 import robjects
-from utils import get_intersected_genes, count_intervals
+from utils import get_overlapping_features, count_intervals
 
 
 def tsv_len(tsv_file):
@@ -150,50 +150,50 @@ def calcuate_qvals(pvals):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='LSEA')
-    parser.add_argument('-pldir', help='Path to PLINK directory', metavar='dir',
-                        type=str, required=False)
-    parser.add_argument('-b_file', help='Bfile for PLINK', metavar='path',
-                        type=str, required=False)
-    parser.add_argument('-tsv', help='Input file in tsv-format', metavar='file',
+    parser.add_argument('-input', help='Input file in TSV format. The file should contain at least four columns: chromosome name, variant position, variant ID, and GWAS p-value. The file MUST have a header row.', metavar='file',
                         type=str, required=True)
-    parser.add_argument('-ldsc_dir', help='Path to LDSC directory', metavar='dir',
+    parser.add_argument('-universe', help='Json file with universe',
+                        metavar='path', type=str, required=True)
+    parser.add_argument('-out', help='Output file name (Default: result.tsv)',
+                        metavar='name', type=str, required=False, default='result.tsv')
+    parser.add_argument('-n', help='Number of individuals in the GWAS analysis (sample size)',
+                        metavar='int', type=int, required=True)
+    parser.add_argument('-m', help='Expected number of causal SNPs in the dataset (Default: 30)',
+                        metavar='int', type=int, required=False, default=30)
+    parser.add_argument('-h2', help='Expected number of total variance explained by SNPs (SNP-based heritability). If not specified, will be estimated using LDSC',
+                        metavar='float', type=float, required=False)
+    parser.add_argument('-plink_dir', help='Path to a directory with PLINK executable', metavar='dir',
+                        type=str, required=False)
+    parser.add_argument('-bfile', help='Genotypes in PLINK .bed format that will be used for LD-based clumping. Only file prefix should be given.', metavar='prefix',
+                        type=str, required=False)
+    parser.add_argument('-ldsc_dir', help='Path to LDSC directory (provide only if h2 is unknown)', metavar='dir',
                         type=str, required=False)
 #    parser.add_argument('-interval', help='Size of interval taken from each clumping center (Default: 500000)',
 #                        metavar='int', type=int, required=False, default=500000)
-    parser.add_argument('-use_clumped', help='Path to .clumped file if already exists',
-                        metavar='path', type=str, required=False)
+#    parser.add_argument('-use_clumped', help='Path to .clumped file if already exists',
+#                        metavar='path', type=str, required=False)
 #    parser.add_argument('-gene_file', help='Path to file with genes',
 #                        metavar='path', type=str, required=True)
     parser.add_argument('-qval_threshold', help='Q-value threshold for output (Default: 0.1)',
                         metavar='float', type=float, required=False, default="0.1")
-    parser.add_argument('-column_names', help='Column names for input tsv. Should be 4 values - for chromosome, position, id and p (Default: chr, pos, id, p)',
+    parser.add_argument('-column_names', help='Column names for input TSV. These names will be used if the column names do not match the default: chr, pos, id, p. Names should be given in the same order (chromosome, position, ID, p-value)',
                         metavar='name', nargs=4, type=str, required=False)
-    parser.add_argument('-ldsc_id', help='Column name for snpid matching your LD scores estimations (Default: id)',
+    parser.add_argument('-alt_id', help='Column name for alternative variant ID matching your LD scores estimations (use only if variant IDs for LD scores do not match variant IDs in your association data (Default: id)',
                         metavar='name', type=str, required=False)
-    parser.add_argument('-json', help='Json file with universe',
-                        metavar='path', type=str, required=True)
-    parser.add_argument('-n', help='Number of individuals included into GWAS analysis',
-                        metavar='int', type=int, required=True)
-    parser.add_argument('-m', help='Presumably an amount of causal SNPs in GWAS analysis (Default: 30)',
-                        metavar='int', type=int, required=False, default=30)
-    parser.add_argument('-h2', help='Presumably an amount of total variance, explained by SNPs (Default: through LD scores)',
-                        metavar='float', type=float, required=False)
-    parser.add_argument('-out', help='Prefix to output file (Default: result.tsv)',
-                        metavar='name', type=str, required=False, default='result.tsv')
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
     args = parser.parse_args()
-    tsv_file = args.tsv
-    path_to_plink_dir = args.pldir
+    tsv_file = args.input
+    path_to_plink_dir = args.plink_dir
     if path_to_plink_dir is not None:
         path_to_plink_dir = normalize_path(args.pldir)
-    path_to_bfile = args.b_file
+    path_to_bfile = args.bfile
     clumped_file = args.use_clumped
     qval_thresh = args.qval_threshold
     col_names = args.column_names
     ldsc_name = args.ldsc_id
-    json_file = args.json
+    json_file = args.universe
     ldsc_path = args.ldsc_dir
     samples_number = args.n
     causal_number = args.m
@@ -206,30 +206,27 @@ if __name__ == '__main__':
     if heritability is None:
         heritability = get_h2(tsv_file, ldsc_path, col_names, ldsc_name)
     input_dict = get_snp_info(tsv_file, col_names)
-    if clumped_file is None:
-        clumped_file = run_plink(
-            path_to_plink_dir, path_to_bfile, tsv_file, input_dict, samples_number, causal_number, heritability)
+    clumped_file = run_plink(path_to_plink_dir, path_to_bfile, tsv_file, input_dict, samples_number, causal_number, heritability)
 
-    base = json.load(open(json_file, "r"))
-    interval = base["interval"]
+    universe= json.load(open(json_file, "r"))
+    interval = universe["interval"]
     with open('./features.bed', 'w') as feature_file:
         for feature in base["features"]:
             bed_line = '\t'.join(base["features"][feature])
             feature_file.write(f'{bed_line}\n')
-    interval_counts_for_universe = base["interval_counts"]
+    interval_counts_for_universe = universe["interval_counts"]
 
     make_bed_file(clumped_file, interval)
     n_intervals = sum(1 for line in open('merged_with_line_numbers.bed'))
-    genes = get_intersected_genes(
-        "./merged_with_line_numbers.bed", './features.bed', "inter.tsv")
-    msig_dict = base["gene_set_dict"]
-    interval_counts = count_intervals(msig_dict, genes)
-
+    target_features = get_overlapping_features("./merged_with_line_numbers.bed", './features.bed', "inter.tsv")
+    feature_set = universe["gene_set_dict"]
+    interval_counts = count_intervals(feature_set, target_features)
 
     pvals = []
     for w in sorted(interval_counts, key=interval_counts.get, reverse=True):
         if interval_counts[w] != 0:
-            pvals.append(p_val_for_gene_set(base["universe_intervals_number"], interval_counts_for_universe[w], n_intervals, interval_counts[w]))
+            pvals.append(p_val_for_gene_set(universe["universe_intervals_number"], 
+                interval_counts_for_universe[w], n_intervals, interval_counts[w]))
 
     qvals = calcuate_qvals(pvals)
     with open(f"./{out_name}", 'w', newline='') as file:

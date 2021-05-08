@@ -17,7 +17,7 @@ def count_intervals(dict, genes):
     return res
 
 # Extract gene names that are in intersection
-def get_intersected_genes(path_to_bed, path_to_gene_file, out_file):
+def get_overlapping_features(path_to_bed, path_to_gene_file, out_file):
     genes = defaultdict(list)  # Gene -> interval id
     subprocess.call("bedtools intersect -a {0} -b {1} -loj > {2}".format(path_to_bed, path_to_gene_file, out_file), shell=True)
     with open(out_file, 'r', newline='') as inter:  # Our result of clumping (SNPs sets)
@@ -44,7 +44,7 @@ def get_snp_locations(tsv_file):
     return input_dict
 
 
-def get_msig_dict(path):
+def read_gmt(path):
     d = defaultdict(list)
     with open(path, 'r', newline='') as db:
         my_reader = csv.reader(db, delimiter='\t')

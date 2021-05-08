@@ -2,7 +2,7 @@ import argparse
 import sys
 import csv
 import json
-from utils import get_snp_locations, get_intersected_genes, count_intervals, get_msig_dict, get_features_from_dir, read_features
+from utils import get_snp_locations, get_overlapping_features, count_intervals, get_features_from_dir, read_features, read_gmt
 
 def create_universe(dict, interval):
     with open("./universe.bed", 'w', newline='') as bed_file:  # Here we write to new file
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     interval = args.interval
     if args.features is not None:
         bed, gmt = args.features
-        gene_set_dict = get_msig_dict(gmt)
+        gene_set_dict = read_gmt(gmt)
     else:
         feature_dir = args.feature_files_dir
         gene_set_dict = get_features_from_dir(feature_dir)
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     
     input_dict = get_snp_locations(variants)
     create_universe(input_dict, interval)
-    features_in_universe = get_intersected_genes("./universe.bed", bed, "inter2.tsv")
+    features_in_universe = get_overlapping_features("./universe.bed", bed, "inter2.tsv")
     interval_counts_for_universe = count_intervals(gene_set_dict, features_in_universe)
 
     feature_dict = read_features(bed)
