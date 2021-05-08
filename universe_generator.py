@@ -2,7 +2,7 @@ import argparse
 import sys
 import csv
 import json
-from utils import create_snp_dict, get_intersected_genes, count_intervals, get_msig_dict
+from utils import get_snp_locations, get_overlapping_features, count_intervals, get_features_from_dir, read_features, read_gmt
 
 def create_universe(dict, interval):
     with open("./universe.bed", 'w', newline='') as bed_file:  # Here we write to new file
@@ -20,43 +20,43 @@ def create_universe(dict, interval):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Universe generator for LSEA')
-    parser.add_argument('-column_names', help='Column names for input tsv. Should be 4 values - for chromosome, position, id and pval (Default: chr, pos, id, p)',
-                    metavar='name', nargs=4, type=str, required=False)
-    parser.add_argument('-path', help='Path to file from which universe will be created',
+    parser.add_argument('-variants', help='Path to TSV file with variant coordinates that will be used for universe generation. The file whould contain at least three columns: chromosome, position, and variant ID (must be unique). All other columns ar ignored.',
                         metavar='path', type=str, required=True)
-    parser.add_argument('-interval', help='Size of interval taken from each clumping center (Default: 500000)',
+    parser.add_argument('-interval', help='Size of the window around each target variant (Default: 500000)',
                         metavar='int', type=int, required=False, default=500000)
-    parser.add_argument('-gene_file', help='Path to file with genes',
-                        metavar='path', type=str, required=True)
-    parser.add_argument('-msig_path', help='Path to file with set/gene relationships',
-                        metavar='path', type=str, required=True)
-    parser.add_argument('-skip_intersect', help='Use if inter2.tsv is already created',
-                        action = "store_true", required=False)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-features', help='Path to files with all feature annotations (one feature per line) in BED format and feature set description in GMT format. Two file paths separated by space should be provided in the following order: [BED] [GMT]. Cannot be used with -feature_files_dir',
+                        metavar='path', nargs=2)
+    group.add_argument('-feature_files_dir', help='A directory with feature files, one file per feature set, in BED format. File name will be used a the name of each feature set. Cannot be used with -features',
+                        metavar='path', type=str)
     parser.add_argument('-o', help='Output path for json',
                         metavar='path', type=str, required=True)
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
     args = parser.parse_args()
-    path = args.path
+    variants = args.variants
     interval = args.interval
-    col_names = args.column_names
-    path_to_gene_file = args.gene_file  # TODO: add default file
-    msig_path = args.msig_path
-    skip_intersect = args.skip_intersect
+    if args.features is not None:
+        bed, gmt = args.features
+        gene_set_dict = read_gmt(gmt)
+    else:
+        feature_dir = args.feature_files_dir
+        gene_set_dict = get_features_from_dir(feature_dir)
+        bed = 'features.bed'
     out_path = args.o
-    col_names = args.column_names
     
-    if col_names is None:
-        col_names = ["chr", "pos", "id", "p"]
-    input_dict = create_snp_dict(path, col_names)
-    msig_dict = get_msig_dict(msig_path)
+    input_dict = get_snp_locations(variants)
     create_universe(input_dict, interval)
-    genes_in_universe = get_intersected_genes(
-        "./universe.bed", path_to_gene_file, "inter2.tsv", skip_intersect)
-    interval_counts_for_universe = count_intervals(
-        msig_dict, genes_in_universe)
-    out_dict = {"universe_intervals_number" : len(input_dict), "interval_counts" : interval_counts_for_universe, "msig_dict" : msig_dict}
+    features_in_universe = get_overlapping_features("./universe.bed", bed, "inter2.tsv")
+    interval_counts_for_universe = count_intervals(gene_set_dict, features_in_universe)
+
+    feature_dict = read_features(bed)
+    out_dict = {"interval": interval,
+            "universe_intervals_number" : len(input_dict), 
+            "interval_counts" : interval_counts_for_universe, 
+            "gene_set_dict" : gene_set_dict,
+            "features" : feature_dict}
 
     base = open(out_path, "w")
     json.dump(out_dict, base)
