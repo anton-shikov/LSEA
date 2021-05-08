@@ -187,12 +187,11 @@ if __name__ == '__main__':
     tsv_file = args.input
     path_to_plink_dir = args.plink_dir
     if path_to_plink_dir is not None:
-        path_to_plink_dir = normalize_path(args.pldir)
+        path_to_plink_dir = normalize_path(args.plink_dir)
     path_to_bfile = args.bfile
-    clumped_file = args.use_clumped
     qval_thresh = args.qval_threshold
     col_names = args.column_names
-    ldsc_name = args.ldsc_id
+    ldsc_name = args.alt_id
     json_file = args.universe
     ldsc_path = args.ldsc_dir
     samples_number = args.n
@@ -211,8 +210,8 @@ if __name__ == '__main__':
     universe= json.load(open(json_file, "r"))
     interval = universe["interval"]
     with open('./features.bed', 'w') as feature_file:
-        for feature in base["features"]:
-            bed_line = '\t'.join(base["features"][feature])
+        for feature in universe["features"]:
+            bed_line = '\t'.join(universe["features"][feature])
             feature_file.write(f'{bed_line}\n')
     interval_counts_for_universe = universe["interval_counts"]
 
