@@ -37,7 +37,9 @@ def get_h2(tsv_file, ldsc_dir, column_names, ldsc_id):
     return h2
 
 
-def get_cutoff(N, M, h2, tsv_file):
+def get_cutoff(p, N, M, h2, tsv_file):
+    if p is not None:
+        return p
     K = tsv_len(tsv_file)
     lin = 1.547e-01
     b1 = 1.244e-01
@@ -52,7 +54,7 @@ def get_cutoff(N, M, h2, tsv_file):
     return 10**-(log_p_cutoff)
 
 
-def run_plink(plink_path, bfile_path, tsv_file, input_dict, n, m, h2):
+def run_plink(plink_path, bfile_path, tsv_file, input_dict, p, n, m, h2):
     print('Calculating independent loci with PLINK')
     tsv_plink = os.getcwd() + "/" + \
         tsv_file.split('/')[-1].split('.')[0] + '_for_plink.tsv'
@@ -67,7 +69,7 @@ def run_plink(plink_path, bfile_path, tsv_file, input_dict, n, m, h2):
             row = [snp] + input_dict[snp][0:3]
             my_writer.writerow(row)
     subprocess.call('{0}/plink --bfile {1} --clump {2} --clump-field P --clump-p1 {3} --clump-r2 0.1 --clump-snp-field SNP --clump-kb 500 --out {4} --allow-no-sex --allow-extra-chr \
-      2> {5}'.format(plink_path, bfile_path, tsv_plink, get_cutoff(n, m, h2, tsv_file),
+      2> {5}'.format(plink_path, bfile_path, tsv_plink, get_cutoff(p, n, m, h2, tsv_file),
                      out_plink, 'PLINK_clumping.log'), shell=True)
     return out_plink + ".clumped"
 
@@ -156,8 +158,10 @@ if __name__ == '__main__':
                         metavar='path', type=str, required=True)
     parser.add_argument('-out', help='Output file name (Default: result.tsv)',
                         metavar='name', type=str, required=False, default='result.tsv')
+    parser.add_argument('-p', help='p-value cutoff to be used when identifying associated loci. If not specified, optimal cutoff will be estimated using a regression model (at least -n and -m options should be given)',
+                        metavar='float', type=float, required=False)
     parser.add_argument('-n', help='Number of individuals in the GWAS analysis (sample size)',
-                        metavar='int', type=int, required=True)
+                        metavar='int', type=int, required=False)
     parser.add_argument('-m', help='Expected number of causal SNPs in the dataset (Default: 30)',
                         metavar='int', type=int, required=False, default=30)
     parser.add_argument('-h2', help='Expected number of total variance explained by SNPs (SNP-based heritability). If not specified, will be estimated using LDSC',
@@ -197,15 +201,20 @@ if __name__ == '__main__':
     samples_number = args.n
     causal_number = args.m
     heritability = args.h2
+    p_cutoff = args.p
     out_name = args.out
+    if p_cutoff is None and samples_number is None:
+        print('ERROR Either p-value cutoff or sample size should be provided')
+        sys.exit(1)
     if col_names is None:
         col_names = ["chr", "pos", "id", "p"]
     if ldsc_name is None:
         ldsc_name = col_names[2]
-    if heritability is None:
+    if p_cutoff is None and heritability is None:
         heritability = get_h2(tsv_file, ldsc_path, col_names, ldsc_name)
     input_dict = get_snp_info(tsv_file, col_names)
-    clumped_file = run_plink(path_to_plink_dir, path_to_bfile, tsv_file, input_dict, samples_number, causal_number, heritability)
+    clumped_file = run_plink(path_to_plink_dir, path_to_bfile, tsv_file, input_dict, p_cutoff, 
+            samples_number, causal_number, heritability)
 
     universe= json.load(open(json_file, "r"))
     interval = universe["interval"]
