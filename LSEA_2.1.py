@@ -17,15 +17,14 @@ def tsv_len(tsv_file):
             pass
     return i
 
-def get_h2(tsv_file, ldsc_dir, column_names, ldsc_id):
+def get_h2(N, tsv_file, ldsc_dir, column_names, ldsc_id):
     global h2
     subprocess.call(
         '{0}/munge_sumstats.py --N {1} --snp {2} --p {3} --out for_h2 --sumstats {4}'.
-            format(ldsc_dir, N, ldsc_id, column_names[3], tsv_file), shell=True
-    )
+            format(ldsc_dir, N, ldsc_id, column_names[3], tsv_file), shell=True)
     subprocess.call(
-        '{0}/ldsc.py --h2 for_h2.sumstats.gz --ref-ld {0}/eur_w_ld_chr_custom/genotypes_genome_hapgen.MAF_higher_0.05.with_cms \
-        --w-ld {0}/eur_w_ld_chr_custom/genotypes_genome_hapgen.MAF_higher_0.05.with_cms --out h2'.format(ldsc_dir),
+        '{0}/ldsc.py --h2 for_h2.sumstats.gz --ref-ld-chr {0}/eur_w_ld_chr/ \
+        --w-ld-chr {0}/eur_w_ld_chr/ --out h2'.format(ldsc_dir),
         shell=True
     )
     pattern = re.compile('Total Observed scale h2:')
@@ -203,7 +202,7 @@ if __name__ == '__main__':
     heritability = args.h2
     p_cutoff = args.p
     out_name = args.out
-    if p_cutoff is None and samples_number is None:
+    if p_cutoff is None and samples_number is None and samples_number_col is None:
         print('ERROR Either p-value cutoff or sample size should be provided')
         sys.exit(1)
     if col_names is None:
@@ -211,7 +210,7 @@ if __name__ == '__main__':
     if ldsc_name is None:
         ldsc_name = col_names[2]
     if p_cutoff is None and heritability is None:
-        heritability = get_h2(tsv_file, ldsc_path, col_names, ldsc_name)
+        heritability = get_h2(samples_number, tsv_file, ldsc_path, col_names, ldsc_name)
     input_dict = get_snp_info(tsv_file, col_names)
     clumped_file = run_plink(path_to_plink_dir, path_to_bfile, tsv_file, input_dict, p_cutoff, 
             samples_number, causal_number, heritability)
@@ -232,7 +231,7 @@ if __name__ == '__main__':
 
     pvals = []
     for w in sorted(interval_counts, key=interval_counts.get, reverse=True):
-        if interval_counts[w] != 0:
+        if interval_counts[w] >= 3:
             pvals.append(p_val_for_gene_set(universe["universe_intervals_number"], 
                 interval_counts_for_universe[w], n_intervals, interval_counts[w]))
 
@@ -241,7 +240,7 @@ if __name__ == '__main__':
         my_writer = csv.writer(file, delimiter='\t')
         my_writer.writerow(["Gene_set", "p-value", "q-value"])
         for i, w in enumerate(sorted(interval_counts, key=interval_counts.get, reverse=True)):
-            if interval_counts[w] != 0:
+            if interval_counts[w] >= 3:
                 if qvals[i] <= qval_thresh:
                     row = [w, pvals[i], qvals[i]]
                     my_writer.writerow(row)
