@@ -238,9 +238,9 @@ if __name__ == '__main__':
     qvals = calcuate_qvals(pvals)
     with open(f"./{out_name}", 'w', newline='') as file:
         my_writer = csv.writer(file, delimiter='\t')
-        my_writer.writerow(["Gene_set", "p-value", "q-value"])
+        my_writer.writerow(["Gene_set", "Overlapping_loci", "p-value", "q-value"])
         for i, w in enumerate(sorted(interval_counts, key=interval_counts.get, reverse=True)):
             if interval_counts[w] >= 3:
                 if qvals[i] <= qval_thresh:
-                    row = [w, pvals[i], qvals[i]]
+                    row = [w, interval_counts[w], pvals[i], qvals[i]]
                     my_writer.writerow(row)
