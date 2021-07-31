@@ -17,7 +17,7 @@ def count_intervals(dict, features, emit_raw=True):
                 if len(intervals) == 1:
                     target_interval = intervals[0]
                 else:
-                    target_interval = intervals[np.random.randint(len(intervals), size=1)]
+                    target_interval = intervals[np.random.randint(len(intervals), size=1)[0]]
                 interval_dict[target_interval].add(feature)
         if emit_raw:
             res[name] = interval_dict
