@@ -1,10 +1,11 @@
+#!/usr/bin/env python3
+
 import argparse
 import subprocess
 import sys
 import os
 import csv
 import json
-import re
 import shutil
 from collections import defaultdict
 from typing import Counter
@@ -82,8 +83,7 @@ def make_bed_file(clumped_file, interval, out_name):
                     if row[0] == "CHR":  # Skip first row
                         continue
 #                    print('Got here')
-                    bed_row = [row[0], int(row[3]) -
-                               interval, int(row[3]) + interval]
+                    bed_row = [row[0], max(int(row[3]) - interval, 0), int(row[3]) + interval]
                     my_writer.writerow(bed_row)
     # Sort file
     subprocess.call(
@@ -97,8 +97,7 @@ def make_bed_file(clumped_file, interval, out_name):
             my_reader = csv.reader(inter, delimiter='\t')
             for row in my_reader:
                 middle_point = int(row[1]) + (int(row[2]) - int(row[1])) // 2
-                new_row = [row[0], middle_point -
-                           interval, middle_point + interval]
+                new_row = [row[0], max(middle_point - interval, 0), middle_point + interval]
                 my_writer.writerow(new_row)
     # Add numeration to intervals
     subprocess.call(
@@ -124,8 +123,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='LSEA')
     parser.add_argument('-input', help='Input file in TSV format. The file should contain at least four columns: chromosome name, variant position, variant ID, and GWAS p-value. The file MUST have a header row.', metavar='file',
                         type=str, required=True)
-    parser.add_argument('-universe', help='Json file with universe',
-                        metavar='path', type=str, required=True)
+    parser.add_argument('-universe', help='JSON file with universe. Several universe files may be specified separated by space',
+                        metavar='path', nargs='+', type=str, required=True)
     parser.add_argument('-out', help='Relative path to output directory (Default: lsea_result). Will be created.',
                         metavar='name', type=str, required=False, default='lsea_result')
     parser.add_argument('-p', help='p-value cutoff to be used when identifying associated loci. If not specified, optimal cutoff will be estimated using a regression model (at least -n and -m options should be given)',
@@ -143,6 +142,9 @@ if __name__ == '__main__':
         parser.print_help(sys.stderr)
         sys.exit(1)
     args = parser.parse_args()
+    
+    print(f'INFO\tRunning LSEA with the following CMD: {" ".join(sys.argv[:])}')
+    
     tsv_file = args.input
     path_to_plink_dir = args.plink_dir
     if path_to_plink_dir is not None:
@@ -150,64 +152,78 @@ if __name__ == '__main__':
     path_to_bfile = args.bfile
     qval_thresh = args.qval_threshold
     col_names = args.column_names
-    json_file = args.universe
+    json_files = args.universe
     p_cutoffs = [float(x) for x in args.p]
     out_name = args.out
     if col_names is None:
         col_names = ["chr", "pos", "id", "p"]
+    print(f'INFO\tReading input file {tsv_file}...')
     input_dict = get_snp_info(tsv_file, col_names)
 
     if os.path.exists(f'./{out_name}'):
+        print(f'WARN\tOutput diretory {out_name} exists, removing...')
         shutil.rmtree(f'./{out_name}')
     os.makedirs(f'./{out_name}')
 
-    universe= json.load(open(json_file, "r"))
-    interval = universe["interval"]
-    with open(f'./{out_name}/features.bed', 'w') as feature_file:
-        for feature in universe["features"]:
-            bed_line = '\t'.join(universe["features"][feature])
-            feature_file.write(f'{bed_line}\n')
-    interval_counts_for_universe = universe["interval_counts"]
+    for universe_file in json_files:
+        universe_name = os.path.basename(universe_file).replace('.json', '')
+        print(f'INFO\tProcessing universe {universe_name}')
+        universe= json.load(open(universe_file, "r"))
+        interval = universe["interval"]
+        with open(f'./{out_name}/features.bed', 'w') as feature_file:
+            for feature in universe["features"]:
+                bed_line = '\t'.join(universe["features"][feature])
+                feature_file.write(f'{bed_line}\n')
+        interval_counts_for_universe = universe["interval_counts"]
+        print(f'INFO\tUniverse stats:')
+        print(f'\tinterval size = {interval};\n\tinterval count = {universe["universe_intervals_number"]};')
+        print(f'\ttotal number of features = {len(universe["features"])};')
+        print(f'\tfeature sets in universe = {len(universe["gene_set_dict"])}')
 
-    stats_file = open(f"./{out_name}/annotation_stats.tsv", 'w')
-    print('p_cutoff\tnum_loci\tannotated_loci\tunambiguoug_annotations', file=stats_file)
+        stats_file = open(f"./{out_name}/annotation_stats_{universe_name}.tsv", 'w')
+        print('p_cutoff\tnum_loci\tannotated_loci\tunambiguoug_annotations\tsignificant_hits\tmin_qval', file=stats_file)
 
-    for p_cutoff in p_cutoffs:
-        clumped_file = run_plink(path_to_plink_dir, path_to_bfile, tsv_file, input_dict, p_cutoff, out_name)
-        make_bed_file(clumped_file, interval, out_name)
-        n_intervals = sum(1 for line in open(f'./{out_name}/merged_with_line_numbers.bed'))
-        target_features = get_overlapping_features(f"./{out_name}/merged_with_line_numbers.bed", 
-                    f'./{out_name}/features.bed', f"./{out_name}/inter.tsv")    
-        feature_set = universe["gene_set_dict"]
-        interval_counts = count_intervals(feature_set, target_features)
+        for p_cutoff in p_cutoffs:
+            print(f'INFO\tCalculating enrichment with p-value cutoff = {p_cutoff}')
+            clumped_file = run_plink(path_to_plink_dir, path_to_bfile, tsv_file, input_dict, p_cutoff, out_name)
+            make_bed_file(clumped_file, interval, out_name)
+            n_intervals = sum(1 for line in open(f'./{out_name}/merged_with_line_numbers.bed'))
+            target_features = get_overlapping_features(f"./{out_name}/merged_with_line_numbers.bed", 
+                        f'./{out_name}/features.bed', f"./{out_name}/inter.tsv")    
+            feature_set = universe["gene_set_dict"]
+            interval_counts = count_intervals(feature_set, target_features)
 
-        pvals = []
-        for w in sorted(interval_counts, key=lambda item: len(interval_counts[item]), reverse=True):
-            pvals.append(p_val_for_gene_set(universe["universe_intervals_number"], 
-                interval_counts_for_universe[w], n_intervals, len(interval_counts[w])))
-        qvals = calcuate_qvals(pvals)
+            pvals = []
+            for w in sorted(interval_counts, key=lambda item: len(interval_counts[item]), reverse=True):
+                pvals.append(p_val_for_gene_set(universe["universe_intervals_number"], 
+                    interval_counts_for_universe[w], n_intervals, len(interval_counts[w])))
+            qvals = calcuate_qvals(pvals)
 
-        with open(f"./{out_name}/result_{p_cutoff}.tsv", 'w', newline='') as file:
-            explained_loci = set()
-            feature_names = defaultdict(set)
-            my_writer = csv.writer(file, delimiter='\t')
-            my_writer.writerow(["Gene_set", "Overlapping_loci", "Description", "p-value", "q-value"])
-            for i, w in enumerate(sorted(interval_counts, key=lambda item: len(interval_counts[item]), reverse=True)):
-                if len(interval_counts[w]) >= 3 and qvals[i] <= qval_thresh:
-                    for locus in interval_counts[w]:
-                        explained_loci.add(locus)
-                        feature_names[locus].add(';'.join(interval_counts[w][locus]))
-                    row = [w, len(interval_counts[w]), dict(interval_counts[w]), pvals[i], qvals[i]]
-                    my_writer.writerow(row)
-            # Calculating number of loci with ambiguous annotations
-            ambiguous_loci = 0
-            for _, feature_set in feature_names.items():
-                if len(feature_set) > 1:
-                    expanded_set = sum([ftr.split(';') for ftr in feature_set], [])
-                    feature_freq = dict(Counter(expanded_set))
-                    if max(feature_freq.values()) < len(feature_set):
-                        ambiguous_loci += 1
-            unambiguous = len(explained_loci) - ambiguous_loci
-            print(f'{p_cutoff}\t{n_intervals}\t{len(explained_loci)}\t{unambiguous}', file=stats_file)
-    
-    stats_file.close()
+            with open(f"./{out_name}/{universe_name}_result_{p_cutoff}.tsv", 'w', newline='') as file:
+                explained_loci = set()
+                feature_names = defaultdict(set)
+                hit_count = 0
+                min_qval = 1
+                my_writer = csv.writer(file, delimiter='\t')
+                my_writer.writerow(["Gene_set", "Overlapping_loci", "Description", "p-value", "q-value"])
+                for i, w in enumerate(sorted(interval_counts, key=lambda item: len(interval_counts[item]), reverse=True)):
+                    if len(interval_counts[w]) >= 3 and qvals[i] <= qval_thresh:
+                        min_qval = min(min_qval, qvals[i])
+                        hit_count += 1
+                        for locus in interval_counts[w]:
+                            explained_loci.add(locus)
+                            feature_names[locus].add(';'.join(interval_counts[w][locus]))
+                        row = [w, len(interval_counts[w]), dict(interval_counts[w]), pvals[i], qvals[i]]
+                        my_writer.writerow(row)
+                # Calculating number of loci with ambiguous annotations
+                ambiguous_loci = 0
+                for _, feature_set in feature_names.items():
+                    if len(feature_set) > 1:
+                        expanded_set = sum([ftr.split(';') for ftr in feature_set], [])
+                        feature_freq = dict(Counter(expanded_set))
+                        if max(feature_freq.values()) < len(feature_set):
+                            ambiguous_loci += 1
+                unambiguous = len(explained_loci) - ambiguous_loci
+                print(f'{p_cutoff}\t{n_intervals}\t{len(explained_loci)}\t{unambiguous}\t{hit_count}\t{min_qval}', file=stats_file)
+        
+        stats_file.close()
